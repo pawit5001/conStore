@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+
+# Build output
+.nuxt/
+.output/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# Others
+*.local
+
+# Nuxt
+.cache/
+
+# Tailwind
+*.css.map
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# Public
+public/

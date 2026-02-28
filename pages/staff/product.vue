@@ -1,0 +1,234 @@
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-green-50 via-green-100 to-green-200 flex flex-col font-prompt">
+    <Header />
+    <div class="flex flex-1">
+      <main class="flex-1 pt-20 max-w-3xl w-full mx-auto px-2 sm:px-4 md:px-8">
+        <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-green-700">รายการสินค้า</h2>
+            <!-- ไม่มีปุ่มเพิ่มสินค้า -->
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2 mb-4">
+            <select v-model="selectedCategory" class="border rounded px-2 py-1 w-full sm:w-auto">
+              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+            </select>
+            <input v-model="search" type="text" placeholder="ค้นหาสินค้า" class="border rounded px-2 py-1 flex-1" />
+          </div>
+          <ul>
+            <li v-for="prod in pagedProducts" :key="prod.id" class="flex justify-between items-center border-b py-2">
+              <div>
+                <div class="font-semibold">{{ prod.name }}</div>
+                <div class="text-sm text-gray-500">ราคา: ฿{{ prod.price }} | ต้นทุน: ฿{{ prod.cost }} | จำนวน: {{ prod.qty }}</div>
+              </div>
+              <div class="flex gap-2">
+                <!-- ไม่มีปุ่มแก้ไข/ลบ -->
+              </div>
+            </li>
+          </ul>
+          <!-- Pagination -->
+          <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-6">
+            <button class="px-3 py-1 rounded bg-gray-200 text-gray-700 font-bold" :disabled="page === 1" @click="goPrev">ก่อนหน้า</button>
+            <span v-for="p in totalPages" :key="p">
+              <button class="px-3 py-1 rounded font-bold" :class="p === page ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'" @click="goToPage(p)">{{ p }}</button>
+            </span>
+            <button class="px-3 py-1 rounded bg-gray-200 text-gray-700 font-bold" :disabled="page === totalPages" @click="goNext">ถัดไป</button>
+          </div>
+          <!-- ไม่มี modal สำหรับ staff -->
+        </div>
+        <button class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-green-600 text-white rounded-full shadow-lg p-3 sm:p-4 z-40 flex items-center gap-2 hover:bg-green-700 transition-all border-2 border-white/80" @click="goHome">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 sm:w-7 sm:h-7">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          <span class="hidden md:inline">ย้อนกลับหน้าแรก</span>
+        </button>
+      </main>
+    </div>
+  </div>
+</template>
+
+<script setup>
+// Role check: prevent staff from accessing admin page
+if (process.client) {
+  const role = localStorage.getItem('role');
+  if (role === 'admin') {
+    window.location.href = '/admin-manager';
+  }
+}
+import { ref, computed, watch } from 'vue'
+import Header from '@/components/Header.vue'
+import { useRouter } from '#app'
+const router = useRouter()
+
+const PRODUCT_KEY = 'products'
+const CATEGORY_KEY = 'categories'
+const defaultCategories = [
+  { id: 1, name: 'อาหารแห้ง' },
+  { id: 2, name: 'เครื่องดื่ม' },
+  { id: 3, name: 'ของใช้' }
+]
+const defaultProducts = [
+  // อาหารแห้ง
+  { id: 1, name: 'ข้าวสาร', price: 199, cost: 130, qty: 100, category: 1 },
+  { id: 2, name: 'น้ำปลา', price: 32, cost: 24, qty: 50, category: 1 },
+  { id: 3, name: 'น้ำตาล', price: 22, cost: 14, qty: 70, category: 1 },
+  { id: 4, name: 'เกลือ', price: 18, cost: 11, qty: 60, category: 1 },
+  { id: 5, name: 'แป้ง', price: 25, cost: 15, qty: 80, category: 1 },
+  // เครื่องดื่ม
+  { id: 6, name: 'โค้ก', price: 15, cost: 8, qty: 80, category: 2 },
+  { id: 7, name: 'เป๊ปซี่', price: 15, cost: 8, qty: 70, category: 2 },
+  { id: 8, name: 'น้ำเปล่า', price: 10, cost: 4, qty: 120, category: 2 },
+  { id: 9, name: 'ชาเขียว', price: 20, cost: 12, qty: 60, category: 2 },
+  { id: 10, name: 'นมกล่อง', price: 18, cost: 10, qty: 90, category: 2 },
+  // ของใช้
+  { id: 11, name: 'สบู่', price: 25, cost: 15, qty: 60, category: 3 },
+  { id: 12, name: 'แชมพู', price: 49, cost: 25, qty: 40, category: 3 },
+  { id: 13, name: 'ยาสีฟัน', price: 29, cost: 18, qty: 50, category: 3 },
+  { id: 14, name: 'กระดาษทิชชู่', price: 79, cost: 53, qty: 100, category: 3 },
+  { id: 15, name: 'น้ำยาล้างจาน', price: 22, cost: 16, qty: 70, category: 3 }
+]
+function loadProducts() {
+  const data = localStorage.getItem(PRODUCT_KEY)
+  if (data) {
+    try {
+      return JSON.parse(data)
+    } catch {
+      return [...defaultProducts]
+    }
+  }
+  return [...defaultProducts]
+}
+function saveProducts(list) {
+  localStorage.setItem(PRODUCT_KEY, JSON.stringify(list))
+}
+function loadCategories() {
+  const data = localStorage.getItem(CATEGORY_KEY)
+  if (data) {
+    try {
+      return JSON.parse(data)
+    } catch {
+      return [...defaultCategories]
+    }
+  }
+  return [...defaultCategories]
+}
+
+const categories = ref(loadCategories())
+const selectedCategory = ref(categories.value[0]?.id || 1)
+const products = ref(loadProducts())
+const search = ref('')
+
+const filteredProducts = computed(() => {
+  return products.value.filter(prod => prod.category === selectedCategory.value && prod.name.includes(search.value))
+})
+
+const page = ref(1)
+const pageSize = ref(8)
+const totalPages = computed(() => Math.ceil(filteredProducts.value.length / pageSize.value))
+const pagedProducts = computed(() => {
+  const start = (page.value - 1) * pageSize.value
+  return filteredProducts.value.slice(start, start + pageSize.value)
+})
+function goPrev() {
+  if (page.value > 1) page.value--
+}
+function goNext() {
+  if (page.value < totalPages.value) page.value++
+}
+function goToPage(p) {
+  page.value = p
+}
+watch([filteredProducts, pageSize], () => {
+  page.value = 1
+})
+
+const showEdit = ref(false)
+const editId = ref(null)
+const editName = ref('')
+const editPrice = ref(0)
+const editCost = ref(0)
+const editQty = ref(0)
+const editCategory = ref(categories.value[0]?.id || 1)
+
+const showDeleteModal = ref(false)
+const deleteId = ref(null)
+
+function addProduct() {
+  showEdit.value = true
+  editId.value = null
+  editName.value = ''
+  editPrice.value = 0
+  editCost.value = 0
+  editQty.value = 0
+  editCategory.value = categories.value[0]?.id || 1
+}
+function editProduct(id) {
+  const prod = products.value.find(p => p.id === id)
+  if (prod) {
+    showEdit.value = true
+    editId.value = id
+    editName.value = prod.name
+    editPrice.value = prod.price
+    editCost.value = prod.cost
+    editQty.value = prod.qty
+    editCategory.value = prod.category
+  }
+}
+function confirmDelete(id) {
+  showDeleteModal.value = true
+  deleteId.value = id
+}
+function doDelete() {
+  if (deleteId.value !== null) {
+    products.value = products.value.filter(prod => prod.id !== deleteId.value)
+    saveProducts(products.value)
+    showDeleteModal.value = false
+    deleteId.value = null
+  }
+}
+function cancelDelete() {
+  showDeleteModal.value = false
+  deleteId.value = null
+}
+function saveEdit() {
+  if (!editName.value.trim()) {
+    alert('กรุณากรอกชื่อสินค้า')
+    return
+  }
+  if (editId.value === null) {
+    // Add
+    const newId = products.value.length ? Math.max(...products.value.map(p => p.id)) + 1 : 1
+    products.value.push({
+      id: newId,
+      name: editName.value,
+      price: editPrice.value,
+      cost: editCost.value,
+      qty: editQty.value,
+      category: editCategory.value
+    })
+  } else {
+    // Edit
+    const idx = products.value.findIndex(p => p.id === editId.value)
+    if (idx !== -1) {
+      products.value[idx] = {
+        id: editId.value,
+        name: editName.value,
+        price: editPrice.value,
+        cost: editCost.value,
+        qty: editQty.value,
+        category: editCategory.value
+      }
+    }
+  }
+  saveProducts(products.value)
+  showEdit.value = false
+}
+function cancelEdit() {
+  showEdit.value = false
+}
+function goHome() {
+  router.push('/staff-manager')
+}
+function selectCategory(id) {
+  selectedCategory.value = id
+}
+</script>
