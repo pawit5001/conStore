@@ -271,7 +271,7 @@ watch([selectedDate, selectedPeriod], () => {
   <div :key="overviewKey" class="min-h-screen bg-gradient-to-br from-orange-100 to-orange-300 flex flex-col font-prompt">
     <Header />
     <main class="flex-1 pt-16 sm:pt-20 max-w-full sm:max-w-5xl mx-auto w-full">
-      <div class="bg-white rounded-2xl shadow-2xl p-3 xs:p-4 sm:p-8 max-w-full sm:max-w-6xl w-full mx-auto px-1 xs:px-2 sm:px-12 mb-16">
+      <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 mb-10">
         <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6">
           <h2 class="text-xl xs:text-2xl font-bold text-orange-700 text-center sm:text-left">รายงานสรุปภาพรวม</h2>
           <input v-model="selectedDate" :key="'date-'+overviewKey" type="date" class="border rounded px-2 py-1 w-full sm:w-auto max-w-xs" />
@@ -292,9 +292,7 @@ watch([selectedDate, selectedPeriod], () => {
         <div class="mb-8">
           <div class="flex flex-col xs:flex-row xs:items-center xs:gap-4 mb-2">
             <h3 class="text-base xs:text-lg font-bold">กราฟยอดขาย</h3>
-            <select v-model="selectedPeriod" class="border rounded px-2 py-1 text-sm ml-0 xs:ml-2 w-fit">
-              <option v-for="opt in periodOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-            </select>
+            <!-- ลบ dropdown period เหลือ dropdown sorting เดียว -->
           </div>
           <div class="bg-white border rounded p-2 xs:p-4">
             <Bar
