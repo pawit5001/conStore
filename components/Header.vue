@@ -44,6 +44,8 @@ const roleCookie = useCookie('role')
 function logout() {
   userCookie.value = null
   roleCookie.value = null
+  localStorage.removeItem('user')
+  localStorage.removeItem('role')
   router.push('/login')
 }
 

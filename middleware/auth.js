@@ -1,14 +1,21 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-  // Allow access to login page (/) only
-  if (to.path === '/' || to.path === '/login') return;
+  // Always allow access to /login
+  if (to.path === '/login') return;
 
-  // Use localStorage for session/role
   const user = process.client ? localStorage.getItem('user') : null;
   const role = process.client ? localStorage.getItem('role') : null;
 
+  // If not logged in, redirect to /login
   if (!user) {
-    return navigateTo('/');
+    return navigateTo('/login');
   }
+
+  // Prevent logged-in users from accessing / or /login
+  if (user && (to.path === '/' || to.path === '/login')) {
+    if (role === 'admin') return navigateTo('/admin-manager');
+    if (role === 'staff') return navigateTo('/staff-manager');
+  }
+
   // Staff cannot access admin pages
   if (role === 'staff' && to.path.startsWith('/admin')) {
     return navigateTo('/staff-manager');

@@ -26,7 +26,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from '#app'
 
 const username = ref('')
@@ -34,6 +34,15 @@ const password = ref('')
 const error = ref('')
 const loading = ref(false)
 const router = useRouter()
+
+onMounted(() => {
+  const user = localStorage.getItem('user')
+  const role = localStorage.getItem('role')
+  if (user && role) {
+    if (role === 'admin') router.push('/admin-manager')
+    else if (role === 'staff') router.push('/staff-manager')
+  }
+})
 
 function login() {
   let role = ''

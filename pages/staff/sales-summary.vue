@@ -16,6 +16,13 @@
               <option value="active">เปิดใช้งาน</option>
               <option value="inactive">ปิดใช้งาน</option>
             </select>
+            <select v-model="sortType" class="border rounded px-2 py-1 min-w-0 w-full sm:w-auto">
+              <option value="date-desc">วันที่ล่าสุด</option>
+              <option value="date-asc">วันที่เก่าสุด</option>
+              <option value="order">เลข Order</option>
+              <option value="total-desc">ยอดขายมากไปน้อย</option>
+              <option value="total-asc">ยอดขายน้อยไปมาก</option>
+            </select>
           </div>
           <ul class="divide-y">
     <li v-for="item in pagedProfits" :key="item.id" class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center border-b py-2">
@@ -103,14 +110,28 @@ const profits = ref(loadProfits())
 const search = ref('')
 const filterStatus = ref('')
 const searchDate = ref('')
+const sortType = ref('date-desc') // ค่าเริ่มต้นคือวันที่ล่าสุด
 
 const filteredProfits = computed(() => {
-  return profits.value.filter(item => {
+  let list = profits.value.filter(item => {
     const matchesSearch = item.name.includes(search.value)
     const matchesStatus = !filterStatus.value || item.status === filterStatus.value
     const matchesDate = !searchDate.value || (item.datetime && item.datetime.slice(0,10) === searchDate.value)
     return matchesSearch && matchesStatus && matchesDate
   })
+  // Sorting
+  if (sortType.value === 'date-desc') {
+    list = list.slice().sort((a, b) => new Date(b.datetime) - new Date(a.datetime))
+  } else if (sortType.value === 'date-asc') {
+    list = list.slice().sort((a, b) => new Date(a.datetime) - new Date(b.datetime))
+  } else if (sortType.value === 'order') {
+    list = list.slice().sort((a, b) => a.name.localeCompare(b.name, 'th', { numeric: true }))
+  } else if (sortType.value === 'total-desc') {
+    list = list.slice().sort((a, b) => b.total - a.total)
+  } else if (sortType.value === 'total-asc') {
+    list = list.slice().sort((a, b) => a.total - b.total)
+  }
+  return list
 })
 
 const page = ref(1)

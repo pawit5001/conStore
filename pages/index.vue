@@ -21,24 +21,31 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter, useCookie } from '#app'
+import { ref, onMounted } from 'vue'
+import { useRouter } from '#app'
 
 const username = ref('')
 const password = ref('')
 const error = ref('')
 const router = useRouter()
-const userCookie = useCookie('user')
-const roleCookie = useCookie('role')
+
+onMounted(() => {
+  const user = localStorage.getItem('user')
+  const role = localStorage.getItem('role')
+  if (user && role) {
+    if (role === 'admin') router.push('/admin-manager')
+    else if (role === 'staff') router.push('/staff-manager')
+  }
+})
 
 function login() {
   if (username.value === 'admin' && password.value === 'admin') {
-    userCookie.value = username.value
-    roleCookie.value = 'admin'
+    localStorage.setItem('user', username.value)
+    localStorage.setItem('role', 'admin')
     router.push('/admin-manager')
   } else if (username.value === 'staff' && password.value === 'admin') {
-    userCookie.value = username.value
-    roleCookie.value = 'staff'
+    localStorage.setItem('user', username.value)
+    localStorage.setItem('role', 'staff')
     router.push('/staff-manager')
   } else {
     error.value = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'

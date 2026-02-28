@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-100 flex flex-col font-prompt">
     <Header />
     <main class="flex-1 flex flex-col items-center pt-8">
-      <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg mx-auto mt-0">
+      <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 mb-10">
         <h2 class="text-3xl font-extrabold mb-6 text-center">หน้าชำระเงิน</h2>
         <div class="flex flex-col items-center mb-6">
           <div class="bg-gray-200 rounded-xl p-6 w-full text-center text-3xl font-extrabold mb-4">฿{{ totalAmount }}</div>
@@ -87,11 +87,19 @@
         <div v-if="paid" class="mt-6 text-center text-green-600 font-bold text-2xl">
           ชำระเงินเรียบร้อย<br/>
           <span class="block mt-3 text-lg">การขายสินค้าสำเร็จ</span>
-          <button class="mt-6 w-full max-w-sm mx-auto flex items-center justify-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow font-bold text-lg transition" @click="printReceipt">
+          <button class="mt-6 w-full max-w-sm mx-auto flex items-center justify-center gap-2 bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow font-bold text-lg transition" @click="printReceipt" :disabled="printLoading">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 9v12h12V9M6 9V6a2 2 0 012-2h8a2 2 0 012 2v3" />
             </svg>
-            พิมพ์ใบเสร็จอีกครั้ง
+            <span v-if="printLoading">
+              <span class="loader mr-2"></span> กำลังพิมพ์ใบเสร็จ...
+            </span>
+            <span v-else-if="printSuccess">
+              ปริ้นใบเสร็จสำเร็จ
+            </span>
+            <span v-else>
+              พิมพ์ใบเสร็จอีกครั้ง
+            </span>
           </button>
           <button class="fixed bottom-6 right-6 bg-blue-500 text-white rounded-full shadow p-4 z-40 flex items-center gap-2 text-lg font-bold" @click="goBack">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
@@ -135,6 +143,8 @@ import { ref, computed } from 'vue';
 const paid = ref(false);
 const loadingCash = ref(false);
 const loadingPromptPay = ref(false);
+const printLoading = ref(false);
+const printSuccess = ref(false);
 const cashInput = ref('');
 const showCash = ref(true); // Default to cash tab
 const showPromptPay = ref(false);
@@ -263,6 +273,14 @@ function confirmPromptPay() {
 }
 
 function printReceipt() {
-  window.print();
+  if (printLoading.value || printSuccess.value) return;
+  printLoading.value = true;
+  setTimeout(() => {
+    printLoading.value = false;
+    printSuccess.value = true;
+    setTimeout(() => {
+      printSuccess.value = false;
+    }, 5000);
+  }, 2000);
 }
 </script>

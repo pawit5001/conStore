@@ -60,7 +60,7 @@
             <span>ยอดรวม</span>
             <span>฿{{ total }}</span>
           </div>
-          <label class="block text-base font-bold mb-1" for="discount-input">ส่วนลด</label>
+          <label class="block text-base font-bold mb-1" for="discount-input">ส่วนลด(บาท)</label>
           <input id="discount-input" v-model="discount" type="number" placeholder="โปรโมชั่น/ส่วนลด" class="mt-3 w-full border rounded px-3 py-2 text-base" />
           <div class="flex flex-wrap gap-3 mt-6">
             <button class="flex-1 min-w-[100px] flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 font-extrabold text-base transition" @click="showClearModal = true">
@@ -132,6 +132,7 @@ import Sidebar from '@/components/Sidebar.vue'
 
 const showSidebar = ref(false)
 const categories = ref([
+  { id: 0, name: 'ทั้งหมด' },
   { id: 1, name: 'อาหารแห้ง' },
   { id: 2, name: 'เครื่องดื่ม' },
   { id: 3, name: 'ของใช้' }
@@ -178,12 +179,27 @@ watch(products, (val) => {
   localStorage.setItem('products', JSON.stringify(val))
 }, { deep: true })
 const filteredProducts = computed(() => {
-  return products.value
-    .filter(p =>
-      p.category === selectedCategory.value &&
-      (!searchText.value || p.name.toLowerCase().includes(searchText.value.toLowerCase()))
-    )
-    .sort((a, b) => a.price - b.price)
+  let list = products.value
+  // Filter by category if not "ทั้งหมด"
+  if (selectedCategory.value !== 0) {
+    list = list.filter(p => p.category === selectedCategory.value)
+    // Sort by name ก-ฮ
+    return list.slice().sort((a, b) => a.name.localeCompare(b.name, 'th'))
+  }
+  // ถ้าเลือก "ทั้งหมด" ให้เรียงตามลำดับหมวดหมู่ก่อน แล้วเรียงชื่อสินค้าในแต่ละหมวดหมู่
+  const categoryOrder = [1, 2, 3]
+  // Filter by search
+  if (searchText.value) {
+    list = list.filter(p => p.name.toLowerCase().includes(searchText.value.toLowerCase()))
+  }
+  return list.slice().sort((a, b) => {
+    // เรียงตาม category ก่อน
+    const catA = categoryOrder.indexOf(a.category)
+    const catB = categoryOrder.indexOf(b.category)
+    if (catA !== catB) return catA - catB
+    // ถ้า category เดียวกัน เรียงตามชื่อ ก-ฮ
+    return a.name.localeCompare(b.name, 'th')
+  })
 })
 
 const cart = ref([])

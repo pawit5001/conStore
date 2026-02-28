@@ -3,7 +3,7 @@
     <Header />
     <div class="flex flex-1 overflow-x-auto">
       <main class="flex-1 pt-16 sm:pt-20 max-w-full sm:max-w-4xl w-full mx-auto px-1 xs:px-2 sm:px-4 md:px-8 overflow-x-auto">
-        <div class="bg-white rounded-2xl shadow-2xl p-2 xs:p-4 sm:p-6 md:p-8 max-w-full w-full break-words overflow-x-auto">
+        <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 mb-10">
           <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6">
             <h2 class="text-xl xs:text-2xl font-bold text-pink-700 text-center sm:text-left">รายการยอดขายและกำไร</h2>
             <button class="bg-pink-500 text-white px-3 xs:px-4 py-2 rounded hover:bg-pink-600 font-bold w-full sm:w-auto" @click="addProfit">เพิ่มรายการ</button>
@@ -15,6 +15,13 @@
               <option value="">ทั้งหมด</option>
               <option value="active">เปิดใช้งาน</option>
               <option value="inactive">ปิดใช้งาน</option>
+            </select>
+            <select v-model="sortType" class="border rounded px-2 py-1 min-w-0 w-full sm:w-auto">
+              <option value="date-desc">วันที่ล่าสุด</option>
+              <option value="date-asc">วันที่เก่าสุด</option>
+              <option value="order">เลข Order</option>
+              <option value="total-desc">ยอดขายมากไปน้อย</option>
+              <option value="total-asc">ยอดขายน้อยไปมาก</option>
             </select>
           </div>
           <ul class="divide-y">
@@ -41,7 +48,7 @@
     </li>
           </ul>
           <!-- Pagination -->
-          <div v-if="totalPages > 1" class="flex flex-wrap justify-center items-center gap-1 xs:gap-2 mt-6">
+          <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-6 mb-8">
             <button class="px-2 xs:px-3 py-1 rounded bg-gray-200 text-gray-700 font-bold" :disabled="page === 1" @click="goPrev">ก่อนหน้า</button>
             <span v-for="p in totalPages" :key="p">
               <button class="px-2 xs:px-3 py-1 rounded font-bold" :class="p === page ? 'bg-pink-500 text-white' : 'bg-gray-100 text-gray-700'" @click="goToPage(p)">{{ p }}</button>
@@ -179,14 +186,28 @@ const profits = ref(loadProfits())
 const search = ref('')
 const filterStatus = ref('')
 const searchDate = ref('')
+const sortType = ref('date-desc') // ค่าเริ่มต้นคือวันที่ล่าสุด
 
 const filteredProfits = computed(() => {
-  return profits.value.filter(item => {
+  let list = profits.value.filter(item => {
     const matchesSearch = item.name.includes(search.value)
     const matchesStatus = !filterStatus.value || item.status === filterStatus.value
     const matchesDate = !searchDate.value || (item.datetime && item.datetime.slice(0,10) === searchDate.value)
     return matchesSearch && matchesStatus && matchesDate
   })
+  // Sorting
+  if (sortType.value === 'date-desc') {
+    list = list.slice().sort((a, b) => new Date(b.datetime) - new Date(a.datetime))
+  } else if (sortType.value === 'date-asc') {
+    list = list.slice().sort((a, b) => new Date(a.datetime) - new Date(b.datetime))
+  } else if (sortType.value === 'order') {
+    list = list.slice().sort((a, b) => a.name.localeCompare(b.name, 'th', { numeric: true }))
+  } else if (sortType.value === 'total-desc') {
+    list = list.slice().sort((a, b) => b.total - a.total)
+  } else if (sortType.value === 'total-asc') {
+    list = list.slice().sort((a, b) => a.total - b.total)
+  }
+  return list
 })
 
 const page = ref(1)

@@ -4,17 +4,23 @@
     <div class="flex flex-1">
       <!-- <Sidebar :show="true" :admin="true" @goHome="goHome" /> -->
       <main class="flex-1 pt-20 max-w-3xl w-full mx-auto px-2 sm:px-4 md:px-8">
-        <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8">
+        <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 mb-10">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-indigo-700">รายชื่อพนักงาน</h2>
             <button class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 font-bold" @click="addEmployee">เพิ่มพนักงาน</button>
           </div>
           <div class="flex gap-2 mb-4">
             <input v-model="search" type="text" placeholder="ค้นหาพนักงาน" class="border rounded px-2 py-1 flex-1" />
-            <select v-model="filterStatus" class="border rounded px-2 py-1">
-              <option value="">ทั้งหมด</option>
-              <option value="active">เปิดใช้งาน</option>
-              <option value="inactive">ปิดใช้งาน</option>
+            <select v-model="sortType" class="border rounded px-2 py-1">
+              <option value="name">ชื่อ (ก-ฮ)</option>
+              <option value="role">ตำแหน่ง</option>
+              <option value="status">สถานะ</option>
+              <option value="active">เฉพาะเปิดใช้งาน</option>
+              <option value="inactive">เฉพาะปิดใช้งาน</option>
+              <option value="created-desc">วันที่เพิ่มล่าสุด</option>
+              <option value="created-asc">วันที่เพิ่มเก่าสุด</option>
+              <option value="updated-desc">วันที่แก้ไขล่าสุด</option>
+              <option value="updated-asc">วันที่แก้ไขเก่าสุด</option>
             </select>
           </div>
           <ul>
@@ -22,6 +28,10 @@
               <div>
                 <div class="font-semibold">{{ emp.name }}</div>
                 <div class="text-sm text-gray-500">{{ emp.role }} | {{ emp.status === 'active' ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}</div>
+                <div class="text-xs text-gray-400">
+                  เพิ่มเมื่อ: {{ emp.createdAt ? new Date(emp.createdAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) : '-' }}<br>
+                  แก้ไขล่าสุด: {{ emp.updatedAt ? new Date(emp.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) : '-' }}
+                </div>
               </div>
               <div class="flex gap-2">
                 <button class="bg-yellow-400 text-white px-2 py-1 rounded" @click="editEmployee(emp.id)">แก้ไข</button>
@@ -30,7 +40,7 @@
             </li>
           </ul>
           <!-- Pagination -->
-          <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-6">
+          <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-6 mb-8">
             <button class="px-3 py-1 rounded bg-gray-200 text-gray-700 font-bold" :disabled="page === 1" @click="goPrev">ก่อนหน้า</button>
             <span v-for="p in totalPages" :key="p">
               <button class="px-3 py-1 rounded font-bold" :class="p === page ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-700'" @click="goToPage(p)">{{ p }}</button>
@@ -106,8 +116,8 @@ import Sidebar from '@/components/Sidebar.vue'
 
 const EMPLOYEE_KEY = 'employees'
 const defaultEmployees = [
-  { id: 1, name: 'สมชาย ใจดี', role: 'พนักงาน', status: 'active' },
-  { id: 2, name: 'สมหญิง ขยัน', role: 'พนักงาน', status: 'inactive' }
+  { id: 1, name: 'สมชาย ใจดี', role: 'พนักงาน', status: 'active', createdAt: '2026-02-01T09:00', updatedAt: '2026-02-01T09:00' },
+  { id: 2, name: 'สมหญิง ขยัน', role: 'พนักงาน', status: 'inactive', createdAt: '2026-02-01T09:10', updatedAt: '2026-02-01T09:10' }
 ]
 function loadEmployees() {
   const data = localStorage.getItem(EMPLOYEE_KEY)
@@ -127,13 +137,33 @@ function saveEmployees(list) {
 const employees = ref(loadEmployees())
 const search = ref('')
 const filterStatus = ref('')
+const sortType = ref('name')
 
 const filteredEmployees = computed(() => {
-  return employees.value.filter(emp => {
+  let list = employees.value.filter(emp => {
     const matchesSearch = emp.name.includes(search.value)
-    const matchesStatus = !filterStatus.value || emp.status === filterStatus.value
-    return matchesSearch && matchesStatus
+    // filter by status if selected
+    if (sortType.value === 'active') return matchesSearch && emp.status === 'active'
+    if (sortType.value === 'inactive') return matchesSearch && emp.status === 'inactive'
+    return matchesSearch
   })
+  // Sorting
+  if (sortType.value === 'name') {
+    list = list.slice().sort((a, b) => a.name.localeCompare(b.name, 'th'))
+  } else if (sortType.value === 'role') {
+    list = list.slice().sort((a, b) => a.role.localeCompare(b.role, 'th'))
+  } else if (sortType.value === 'status') {
+    list = list.slice().sort((a, b) => a.status.localeCompare(b.status, 'th'))
+  } else if (sortType.value === 'created-desc') {
+    list = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  } else if (sortType.value === 'created-asc') {
+    list = list.slice().sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+  } else if (sortType.value === 'updated-desc') {
+    list = list.slice().sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+  } else if (sortType.value === 'updated-asc') {
+    list = list.slice().sort((a, b) => new Date(a.updatedAt) - new Date(b.updatedAt))
+  }
+  return list
 })
 
 const page = ref(1)
@@ -207,6 +237,7 @@ function saveEdit() {
     alert('กรุณากรอกชื่อพนักงาน')
     return
   }
+  const now = new Date().toISOString()
   if (editId.value === null) {
     // Add
     const newId = employees.value.length ? Math.max(...employees.value.map(e => e.id)) + 1 : 1
@@ -214,17 +245,23 @@ function saveEdit() {
       id: newId,
       name: editName.value,
       role: editRole.value,
-      status: editStatus.value
+      status: editStatus.value,
+      createdAt: now,
+      updatedAt: now
     })
   } else {
     // Edit
     const idx = employees.value.findIndex(e => e.id === editId.value)
     if (idx !== -1) {
+      const emp = employees.value[idx]
+      // เช็คว่ามีการเปลี่ยนแปลงจริงหรือไม่
+      const changed = emp.name !== editName.value || emp.role !== editRole.value || emp.status !== editStatus.value
       employees.value[idx] = {
-        id: editId.value,
+        ...emp,
         name: editName.value,
         role: editRole.value,
-        status: editStatus.value
+        status: editStatus.value,
+        updatedAt: changed ? now : emp.updatedAt
       }
     }
   }
