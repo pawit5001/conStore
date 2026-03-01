@@ -26,11 +26,10 @@
         <div class="text-xs sm:text-sm text-gray-500 w-full">
           <div v-for="prod in item.items" :key="prod.name + prod.price" class="flex justify-between gap-2 flex-wrap">
             <span class="truncate max-w-[60vw] sm:max-w-xs break-words">{{ prod.name }} x{{ prod.qty }}</span>
-            <span class="whitespace-nowrap">฿{{ prod.price * prod.qty }} | กำไร ฿{{ (prod.price - (prod.cost || 0)) * prod.qty }}</span>
+            <span class="whitespace-nowrap">฿{{ prod.price * prod.qty }}</span>
           </div>
           <div class="flex flex-row flex-wrap gap-1 mt-1 items-center w-full text-xs">
             <span class="whitespace-nowrap text-base">รวม: ฿{{ item.total }}</span>
-            <span class="font-bold text-pink-700 whitespace-nowrap text-base">กำไร: ฿{{ item.profit }}</span>
             <span class="whitespace-nowrap text-base">{{ item.payType }}</span>
             <span class="whitespace-nowrap text-base">| {{ item.datetime ? new Date(item.datetime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) : '' }}</span>
           </div>
