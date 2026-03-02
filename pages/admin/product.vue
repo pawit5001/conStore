@@ -162,74 +162,34 @@ const router = useRouter()
 
 const PRODUCT_KEY = 'products'
 const CATEGORY_KEY = 'categories'
-const defaultCategories = [
-  { id: 0, name: 'ทั้งหมด' },
-  { id: 1, name: 'อาหารแห้ง' },
-  { id: 2, name: 'เครื่องดื่ม' },
-  { id: 3, name: 'ของใช้' }
-]
-const defaultProducts = [
-  // อาหารแห้ง
-  { id: 1, name: 'ข้าวสาร', price: 199, cost: 130, qty: 100, category: 1, createdAt: '2026-02-01T09:00', updatedAt: '2026-02-01T09:00' },
-  { id: 2, name: 'น้ำปลา', price: 32, cost: 24, qty: 50, category: 1, createdAt: '2026-02-01T09:10', updatedAt: '2026-02-01T09:10' },
-  { id: 3, name: 'น้ำตาล', price: 22, cost: 14, qty: 70, category: 1, createdAt: '2026-02-01T09:20', updatedAt: '2026-02-01T09:20' },
-  { id: 4, name: 'เกลือ', price: 18, cost: 11, qty: 60, category: 1, createdAt: '2026-02-01T09:30', updatedAt: '2026-02-01T09:30' },
-  { id: 5, name: 'แป้ง', price: 25, cost: 15, qty: 80, category: 1, createdAt: '2026-02-01T09:40', updatedAt: '2026-02-01T09:40' },
-  // เครื่องดื่ม
-  { id: 6, name: 'โค้ก', price: 15, cost: 8, qty: 80, category: 2, createdAt: '2026-02-01T10:00', updatedAt: '2026-02-01T10:00' },
-  { id: 7, name: 'เป๊ปซี่', price: 15, cost: 8, qty: 70, category: 2, createdAt: '2026-02-01T10:10', updatedAt: '2026-02-01T10:10' },
-  { id: 8, name: 'น้ำเปล่า', price: 10, cost: 4, qty: 120, category: 2, createdAt: '2026-02-01T10:20', updatedAt: '2026-02-01T10:20' },
-  { id: 9, name: 'ชาเขียว', price: 20, cost: 12, qty: 60, category: 2, createdAt: '2026-02-01T10:30', updatedAt: '2026-02-01T10:30' },
-  { id: 10, name: 'นมกล่อง', price: 18, cost: 10, qty: 90, category: 2, createdAt: '2026-02-01T10:40', updatedAt: '2026-02-01T10:40' },
-  // ของใช้
-  { id: 11, name: 'สบู่', price: 25, cost: 15, qty: 60, category: 3, createdAt: '2026-02-01T11:00', updatedAt: '2026-02-01T11:00' },
-  { id: 12, name: 'แชมพู', price: 49, cost: 25, qty: 40, category: 3, createdAt: '2026-02-01T11:10', updatedAt: '2026-02-01T11:10' },
-  { id: 13, name: 'ยาสีฟัน', price: 29, cost: 18, qty: 50, category: 3, createdAt: '2026-02-01T11:20', updatedAt: '2026-02-01T11:20' },
-  { id: 14, name: 'กระดาษทิชชู่', price: 79, cost: 53, qty: 100, category: 3, createdAt: '2026-02-01T11:30', updatedAt: '2026-02-01T11:30' },
-  { id: 15, name: 'น้ำยาล้างจาน', price: 22, cost: 16, qty: 70, category: 3, createdAt: '2026-02-01T11:40', updatedAt: '2026-02-01T11:40' }
-]
-function loadProducts() {
-  const data = localStorage.getItem(PRODUCT_KEY)
-  let localProducts = []
-  if (data) {
-    try {
-      localProducts = JSON.parse(data)
-    } catch {
-      localProducts = []
-    }
-  }
-  // Merge by id, keep local first, then add defaults not present
-  const merged = [...localProducts]
-  for (const def of defaultProducts) {
-    if (!merged.some(p => p.id === def.id)) {
-      merged.push(def)
-    }
-  }
-  return merged
-}
-function saveProducts(list) {
-  // Merge with defaults before saving
-  const merged = [...list]
-  for (const def of defaultProducts) {
-    if (!merged.some(p => p.id === def.id)) {
-      merged.push(def)
-    }
-  }
-  localStorage.setItem(PRODUCT_KEY, JSON.stringify(merged))
-}
 function loadCategories() {
   const data = localStorage.getItem(CATEGORY_KEY)
   if (data) {
     try {
       return JSON.parse(data)
     } catch {
-      return [...defaultCategories]
+      return [
+        { id: 1, name: 'อาหารแห้ง' },
+        { id: 2, name: 'เครื่องดื่ม' },
+        { id: 3, name: 'ของใช้' }
+      ]
     }
   }
-  return [...defaultCategories]
+  return [
+    { id: 1, name: 'อาหารแห้ง' },
+    { id: 2, name: 'เครื่องดื่ม' },
+    { id: 3, name: 'ของใช้' }
+  ]
 }
-
 const categories = ref(loadCategories())
+// Sync categories when localStorage changes (other tabs/windows)
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === CATEGORY_KEY) {
+      categories.value = loadCategories()
+    }
+  })
+}
 const selectedCategory = ref(0)
 const products = ref(loadProducts())
 const search = ref('')

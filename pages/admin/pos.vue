@@ -13,7 +13,10 @@
           </select>
           <input v-model="searchText" type="text" placeholder="ค้นหาสินค้า..." class="border rounded px-2 py-1 flex-1 max-w-xs w-full sm:w-auto" />
         </div>
-        <div class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4 ml-2 mb">
+        <div v-if="filteredProducts.length === 0" class="text-center text-gray-500 py-8 text-lg font-bold">
+          ไม่พบสินค้าในหมวดหมู่นี้
+        </div>
+        <div v-else class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-4 ml-2 mb">
           <div
             v-for="product in filteredProducts"
             :key="product.id"
@@ -131,17 +134,36 @@ const showCartSidebar = ref(true)
 function toggleCartSidebar() {
   showCartSidebar.value = !showCartSidebar.value
 }
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import Header from '@/components/Header.vue'
 import Sidebar from '@/components/Sidebar.vue'
 
 const showSidebar = ref(false)
-const categories = ref([
-  { id: 0, name: 'ทั้งหมด' },
-  { id: 1, name: 'อาหารแห้ง' },
-  { id: 2, name: 'เครื่องดื่ม' },
-  { id: 3, name: 'ของใช้' }
-])
+const CATEGORY_KEY = 'categories'
+function loadCategories() {
+  const data = localStorage.getItem(CATEGORY_KEY)
+  if (data) {
+    try {
+      const cats = JSON.parse(data)
+      // Add 'ทั้งหมด' at the top
+      return [{ id: 0, name: 'ทั้งหมด' }, ...cats]
+    } catch {
+      return [
+        { id: 0, name: 'ทั้งหมด' },
+        { id: 1, name: 'อาหารแห้ง' },
+        { id: 2, name: 'เครื่องดื่ม' },
+        { id: 3, name: 'ของใช้' }
+      ]
+    }
+  }
+  return [
+    { id: 0, name: 'ทั้งหมด' },
+    { id: 1, name: 'อาหารแห้ง' },
+    { id: 2, name: 'เครื่องดื่ม' },
+    { id: 3, name: 'ของใช้' }
+  ]
+}
+const categories = ref(loadCategories())
 const selectedCategory = ref(categories.value[0].id)
 const selectedCategoryName = computed(() => categories.value.find(c => c.id === selectedCategory.value)?.name || '')
 
@@ -287,6 +309,15 @@ if (localStorage.getItem('cart')) {
   try {
     cart.value = JSON.parse(localStorage.getItem('cart'))
   } catch {}
+}
+
+// Sync categories when localStorage changes (other tabs/windows)
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === CATEGORY_KEY) {
+      categories.value = loadCategories()
+    }
+  })
 }
 
 // Fix hamburger icon for small screens
