@@ -169,17 +169,32 @@ const defaultProducts = [
 ]
 function loadProducts() {
   const data = localStorage.getItem(PRODUCT_KEY)
+  let localProducts = []
   if (data) {
     try {
-      return JSON.parse(data)
+      localProducts = JSON.parse(data)
     } catch {
-      return [...defaultProducts]
+      localProducts = []
     }
   }
-  return [...defaultProducts]
+  // Merge by id, keep local first, then add defaults not present
+  const merged = [...localProducts]
+  for (const def of defaultProducts) {
+    if (!merged.some(p => p.id === def.id)) {
+      merged.push(def)
+    }
+  }
+  return merged
 }
 function saveProducts(list) {
-  localStorage.setItem(PRODUCT_KEY, JSON.stringify(list))
+  // Merge with defaults before saving
+  const merged = [...list]
+  for (const def of defaultProducts) {
+    if (!merged.some(p => p.id === def.id)) {
+      merged.push(def)
+    }
+  }
+  localStorage.setItem(PRODUCT_KEY, JSON.stringify(merged))
 }
 function loadCategories() {
   const data = localStorage.getItem(CATEGORY_KEY)
