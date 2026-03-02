@@ -59,7 +59,7 @@
               <h3 class="text-xl font-bold mb-4 text-center">{{ editId === null ? 'เพิ่มสินค้า' : 'แก้ไขสินค้า' }}</h3>
               <div class="mb-3">
                 <label class="block mb-1 font-bold">ชื่อสินค้า</label>
-                <input v-model="editName" type="text" class="border rounded px-2 py-1 w-full" />
+                <input v-model="editName" type="text" class="border rounded px-2 py-1 w-full" placeholder="ข้าวสาร" />
               </div>
               <div class="mb-3">
                 <label class="block mb-1 font-bold">ราคา</label>

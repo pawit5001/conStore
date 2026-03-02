@@ -20,7 +20,12 @@
             class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-2 sm:p-2.5 flex flex-col items-center w-full max-w-[44vw] xs:max-w-[32vw] sm:max-w-[22vw] md:max-w-[160px] group cursor-pointer relative overflow-hidden"
           >
             <div class="w-full aspect-square flex items-center justify-center bg-gray-50 rounded-lg mb-2 overflow-hidden border border-gray-100">
-              <img :src="product.img && typeof product.img === 'string' && product.img.trim() !== '' ? product.img : 'default.jpg'" alt="product image" class="object-contain w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 group-hover:scale-105 transition-transform duration-200" @error="event => event.target.src = 'default.jpg'" />
+              <img
+                :src="getProductImg(product)"
+                alt="product image"
+                class="object-contain w-20 h-20 xs:w-24 xs:h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 group-hover:scale-105 transition-transform duration-200"
+                @error="event => event.target.src = 'default.jpg'"
+              />
             </div>
             <div class="text-xs xs:text-sm sm:text-base md:text-lg font-bold mb-1 text-center line-clamp-2 min-h-[2.2em]">{{ product.name }}</div>
             <div class="text-blue-600 font-bold text-xs xs:text-sm sm:text-base md:text-lg mb-1">฿{{ product.price }}</div>
@@ -178,6 +183,30 @@ if (localStorage.getItem('products')) {
 watch(products, (val) => {
   localStorage.setItem('products', JSON.stringify(val))
 }, { deep: true })
+function getProductImg(product) {
+  // If img is base64 (new products), use it. If not, fallback to path or default
+  if (product.img && typeof product.img === 'string' && product.img.trim() !== '') {
+    // If base64
+    if (product.img.startsWith('data:image')) {
+      return product.img
+    }
+    // If path (old products)
+    // Check if path exists in defaultProducts
+    const foundDefault = defaultProducts.find(p => p.id === product.id)
+    if (foundDefault && foundDefault.img) {
+      return foundDefault.img
+    }
+    // If not found, fallback to product.img
+    return product.img
+  }
+  // If no img, fallback to default image
+  const foundDefault = defaultProducts.find(p => p.id === product.id)
+  if (foundDefault && foundDefault.img) {
+    return foundDefault.img
+  }
+  return 'default.jpg'
+}
+
 const filteredProducts = computed(() => {
   let list = products.value
   // Filter by category if not "ทั้งหมด"
