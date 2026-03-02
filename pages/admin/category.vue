@@ -52,7 +52,7 @@
               <h3 class="text-xl font-bold mb-4 text-center">{{ editId === null ? 'เพิ่มหมวดหมู่' : 'แก้ไขหมวดหมู่' }}</h3>
               <div class="mb-3">
                 <label class="block mb-1 font-bold">ชื่อหมวดหมู่</label>
-                <input v-model="editName" type="text" class="border rounded px-2 py-1 w-full" />
+                <input v-model="editName" type="text" class="border rounded px-2 py-1 w-full" placeholder="อาหารแห้ง" />
               </div>
               <div class="mb-3">
                 <label class="block mb-1 font-bold">สถานะ</label>

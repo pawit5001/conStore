@@ -54,7 +54,7 @@
               <h3 class="text-xl font-bold mb-4 text-center">{{ editId === null ? 'เพิ่มพนักงาน' : 'แก้ไขพนักงาน' }}</h3>
               <div class="mb-3">
                 <label class="block mb-1 font-bold">ชื่อพนักงาน</label>
-                <input v-model="editName" type="text" class="border rounded px-2 py-1 w-full" />
+                <input v-model="editName" type="text" class="border rounded px-2 py-1 w-full" placeholder="สมชาย ใจดี" />
               </div>
               <div class="mb-3">
                 <label class="block mb-1 font-bold">ตำแหน่ง</label>
