@@ -74,6 +74,22 @@
                 <input v-model.number="editQty" type="number" min="0" class="border rounded px-2 py-1 w-full" />
               </div>
               <div class="mb-3">
+                <label class="block mb-1 font-bold" @click="focusPasteArea">รูปภาพสินค้า</label>
+                <input type="file" accept="image/*" @change="onImageChange" class="border rounded px-2 py-1 w-full" ref="imgInput" />
+                <div
+                  ref="pasteArea"
+                  contenteditable="true"
+                  @paste="onImagePaste"
+                  style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"
+                ></div>
+                <div v-if="editImg" class="mt-2 flex justify-center" @click="focusPasteArea">
+                  <img :src="editImg" alt="preview" class="max-h-32 rounded shadow cursor-pointer" />
+                </div>
+                <div v-else class="mt-2 flex justify-center">
+                  <button type="button" class="bg-gray-100 px-4 py-2 rounded shadow text-gray-500" @click="focusPasteArea">คลิกหรือวางรูปภาพที่นี่</button>
+                </div>
+              </div>
+              <div class="mb-3">
                 <label class="block mb-1 font-bold">หมวดหมู่</label>
                 <select v-model="editCategory" class="border rounded px-2 py-1 w-full">
                   <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
@@ -110,6 +126,7 @@
 </template>
 
 <script setup>
+import { nextTick } from 'vue'
 // Role check: prevent staff from accessing admin page
 if (process.client) {
   const role = localStorage.getItem('role');
@@ -250,6 +267,29 @@ const editPrice = ref(0)
 const editCost = ref(0)
 const editQty = ref(0)
 const editCategory = ref(categories.value[0]?.id || 1)
+const editImg = ref('')
+const imgInput = ref(null)
+const pasteArea = ref(null)
+function focusPasteArea() {
+  if (pasteArea.value) pasteArea.value.focus()
+}
+function onImagePaste(e) {
+  const items = e.clipboardData && e.clipboardData.items
+  if (!items) return
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    if (item.type.indexOf('image') !== -1) {
+      const file = item.getAsFile()
+      const reader = new FileReader()
+      reader.onload = function(evt) {
+        editImg.value = evt.target.result
+      }
+      reader.readAsDataURL(file)
+      e.preventDefault()
+      break
+    }
+  }
+}
 
 const showDeleteModal = ref(false)
 const deleteId = ref(null)
@@ -262,6 +302,10 @@ function addProduct() {
   editCost.value = 0
   editQty.value = 0
   editCategory.value = categories.value[0]?.id || 1
+  editImg.value = ''
+  nextTick(() => {
+    if (imgInput.value) imgInput.value.value = ''
+  })
 }
 function editProduct(id) {
   const prod = products.value.find(p => p.id === id)
@@ -273,7 +317,20 @@ function editProduct(id) {
     editCost.value = prod.cost
     editQty.value = prod.qty
     editCategory.value = prod.category
+    editImg.value = prod.img || ''
+    nextTick(() => {
+      if (imgInput.value) imgInput.value.value = ''
+    })
   }
+}
+function onImageChange(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = function(evt) {
+    editImg.value = evt.target.result
+  }
+  reader.readAsDataURL(file)
 }
 function confirmDelete(id) {
   showDeleteModal.value = true
@@ -307,6 +364,7 @@ function saveEdit() {
       cost: editCost.value,
       qty: editQty.value,
       category: editCategory.value,
+      img: editImg.value,
       createdAt: now,
       updatedAt: now
     })
@@ -315,7 +373,7 @@ function saveEdit() {
     const idx = products.value.findIndex(p => p.id === editId.value)
     if (idx !== -1) {
       const prod = products.value[idx]
-      const changed = prod.name !== editName.value || prod.price !== editPrice.value || prod.cost !== editCost.value || prod.qty !== editQty.value || prod.category !== editCategory.value
+      const changed = prod.name !== editName.value || prod.price !== editPrice.value || prod.cost !== editCost.value || prod.qty !== editQty.value || prod.category !== editCategory.value || prod.img !== editImg.value
       products.value[idx] = {
         ...prod,
         name: editName.value,
@@ -323,6 +381,7 @@ function saveEdit() {
         cost: editCost.value,
         qty: editQty.value,
         category: editCategory.value,
+        img: editImg.value,
         updatedAt: changed ? now : prod.updatedAt
       }
     }
