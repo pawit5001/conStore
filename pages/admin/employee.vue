@@ -5,6 +5,18 @@
       <!-- <Sidebar :show="true" :admin="true" @goHome="goHome" /> -->
       <main class="flex-1 pt-20 max-w-3xl w-full mx-auto px-2 sm:px-4 md:px-8">
         <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 mb-10">
+                    <!-- Success Modal -->
+                    <div v-if="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-xs relative">
+                        <button class="absolute top-2 right-2 text-gray-500 hover:text-green-500" @click="closeSuccessModal">✕</button>
+                        <h3 class="text-xl font-bold mb-4 text-center text-green-700">บันทึกข้อมูลสำเร็จ</h3>
+                        <div class="flex flex-col items-center mb-4">
+                          <span class="mb-2 text-gray-700">ข้อมูลพนักงานถูกบันทึกเรียบร้อยแล้ว</span>
+                          <span class="inline-block w-8 h-8 border-4 border-green-400 border-t-transparent rounded-full animate-spin"></span>
+                          <span class="mt-2 text-xs text-gray-400">หน้าต่างนี้จะปิดอัตโนมัติใน 1 วินาที</span>
+                        </div>
+                      </div>
+                    </div>
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-indigo-700">รายชื่อพนักงาน</h2>
             <button class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 font-bold" @click="addEmployee">เพิ่มพนักงาน</button>
@@ -101,6 +113,15 @@
 </template>
 
 <script setup>
+const showSuccessModal = ref(false)
+let successModalTimer = null
+function closeSuccessModal() {
+  showSuccessModal.value = false
+  if (successModalTimer) {
+    clearTimeout(successModalTimer)
+    successModalTimer = null
+  }
+}
 // Role check: prevent staff from accessing admin page
 if (process.client) {
   const role = localStorage.getItem('role');
@@ -254,19 +275,26 @@ function saveEdit() {
     const idx = employees.value.findIndex(e => e.id === editId.value)
     if (idx !== -1) {
       const emp = employees.value[idx]
-      // เช็คว่ามีการเปลี่ยนแปลงจริงหรือไม่
-      const changed = emp.name !== editName.value || emp.role !== editRole.value || emp.status !== editStatus.value
+      // อัปเดต updatedAt ทุกครั้งที่แก้ไข
       employees.value[idx] = {
         ...emp,
         name: editName.value,
         role: editRole.value,
         status: editStatus.value,
-        updatedAt: changed ? now : emp.updatedAt
+        updatedAt: now
       }
     }
   }
   saveEmployees(employees.value)
   showEdit.value = false
+  showSuccessModal.value = true
+  if (successModalTimer) {
+    clearTimeout(successModalTimer)
+  }
+  successModalTimer = setTimeout(() => {
+    showSuccessModal.value = false
+    successModalTimer = null
+  }, 1000)
 }
 function cancelEdit() {
   showEdit.value = false
