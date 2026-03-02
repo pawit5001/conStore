@@ -143,22 +143,22 @@ const selectedCategoryName = computed(() => categories.value.find(c => c.id === 
 const searchText = ref('')
 const defaultProducts = [
   // อาหารแห้ง
-  { id: 1, name: 'ข้าวสาร', price: 35, cost: 25, category: 1, img: '/rice.jpg' },
-  { id: 2, name: 'น้ำปลา', price: 20, cost: 12, category: 1, img: '/fishsauce.jpg' },
-  { id: 3, name: 'น้ำตาล', price: 18, cost: 10, category: 1, img: '/sugar.jpg' },
-  { id: 4, name: 'เกลือ', price: 12, cost: 6, category: 1, img: '/salt.jpg' },
-  { id: 5, name: 'แป้ง', price: 25, cost: 15, category: 1, img: '/flour.jpg' },
+  { id: 1, name: 'ข้าวสาร', price: 199, cost: 120, category: 1, img: '/rice.jpg' },
+  { id: 2, name: 'น้ำปลา', price: 32, cost: 23, category: 1, img: '/fishsauce.jpg' },
+  { id: 3, name: 'น้ำตาล', price: 22, cost: 12, category: 1, img: '/sugar.jpg' },
+  { id: 4, name: 'เกลือ', price: 18, cost: 9, category: 1, img: '/salt.jpg' },
+  { id: 5, name: 'แป้ง', price: 35, cost: 22, category: 1, img: '/flour.jpg' },
   // เครื่องดื่ม
-  { id: 6, name: 'โค้ก', price: 15, cost: 8, category: 2, img: '/coke.jpg' },
-  { id: 7, name: 'เป๊ปซี่', price: 15, cost: 8, category: 2, img: '/pepsi.jpg' },
+  { id: 6, name: 'โค้ก', price: 18, cost: 8, category: 2, img: '/coke.jpg' },
+  { id: 7, name: 'เป๊ปซี่', price: 18, cost: 8, category: 2, img: '/pepsi.jpg' },
   { id: 8, name: 'น้ำเปล่า', price: 10, cost: 4, category: 2, img: '/water.jpg' },
   { id: 9, name: 'ชาเขียว', price: 20, cost: 12, category: 2, img: '/greentea.jpg' },
   { id: 10, name: 'นมกล่อง', price: 18, cost: 10, category: 2, img: '/milk.jpg' },
   // ของใช้
-  { id: 11, name: 'สบู่', price: 25, cost: 15, category: 3, img: '/soap.jpg' },
+  { id: 11, name: 'สบู่', price: 45, cost: 22, category: 3, img: '/soap.jpg' },
   { id: 12, name: 'แชมพู', price: 40, cost: 25, category: 3, img: '/shampoo.jpg' },
   { id: 13, name: 'ยาสีฟัน', price: 30, cost: 18, category: 3, img: '/toothpaste.jpg' },
-  { id: 14, name: 'กระดาษทิชชู่', price: 22, cost: 12, category: 3, img: '/tissue.jpg' },
+  { id: 14, name: 'กระดาษทิชชู่', price: 60, cost: 25, category: 3, img: '/tissue.jpg' },
   { id: 15, name: 'น้ำยาล้างจาน', price: 28, cost: 16, category: 3, img: '/dishsoap.jpg' }
 ]
 const products = ref([])
