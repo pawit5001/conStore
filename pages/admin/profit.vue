@@ -4,6 +4,18 @@
     <div class="flex flex-1 overflow-x-auto">
       <main class="flex-1 pt-16 sm:pt-20 max-w-full sm:max-w-4xl w-full mx-auto px-1 xs:px-2 sm:px-4 md:px-8 overflow-x-auto">
         <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 mb-10">
+                    <!-- Success Modal -->
+                    <div v-if="showSuccessModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                      <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-xs relative">
+                        <button class="absolute top-2 right-2 text-gray-500 hover:text-pink-500" @click="closeSuccessModal">✕</button>
+                        <h3 class="text-xl font-bold mb-4 text-center text-pink-700">บันทึกข้อมูลสำเร็จ</h3>
+                        <div class="flex flex-col items-center mb-4">
+                          <span class="mb-2 text-gray-700">ข้อมูลรายการถูกบันทึกเรียบร้อยแล้ว</span>
+                          <span class="inline-block w-8 h-8 border-4 border-pink-400 border-t-transparent rounded-full animate-spin"></span>
+                          <span class="mt-2 text-xs text-gray-400">หน้าต่างนี้จะปิดอัตโนมัติใน 1 วินาที</span>
+                        </div>
+                      </div>
+                    </div>
           <div class="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-6">
             <h2 class="text-xl xs:text-2xl font-bold text-pink-700 text-center sm:text-left">รายการยอดขายและกำไร</h2>
             <button class="bg-pink-500 text-white px-3 xs:px-4 py-2 rounded hover:bg-pink-600 font-bold w-full sm:w-auto" @click="addProfit">เพิ่มรายการ</button>
@@ -38,6 +50,7 @@
             <span class="font-bold text-pink-700 whitespace-nowrap text-base">กำไร: ฿{{ item.profit }}</span>
             <span class="whitespace-nowrap text-base">{{ item.payType }}</span>
             <span class="whitespace-nowrap text-base">| {{ item.datetime ? new Date(item.datetime).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) : '' }}</span>
+            <span v-if="item.updatedAt" class="whitespace-nowrap text-xs text-gray-400">แก้ไขล่าสุด: {{ new Date(item.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) }}</span>
           </div>
         </div>
       </div>
@@ -144,6 +157,15 @@
 </template>
 
 <script setup>
+const showSuccessModal = ref(false)
+let successModalTimer = null
+function closeSuccessModal() {
+  showSuccessModal.value = false
+  if (successModalTimer) {
+    clearTimeout(successModalTimer)
+    successModalTimer = null
+  }
+}
 // Role check: prevent staff from accessing admin page
 if (process.client) {
   const role = localStorage.getItem('role');
@@ -313,6 +335,7 @@ function saveEdit() {
   // คำนวณ total/profit ใหม่
   editTotal.value = editItems.value.reduce((sum, i) => sum + (i.price * i.qty), 0)
   editProfit.value = editItems.value.reduce((sum, i) => sum + ((i.price - (i.cost || 0)) * i.qty), 0)
+  const now = new Date().toISOString()
   if (editId.value === null) {
     // Add
     const newId = profits.value.length ? Math.max(...profits.value.map(i => i.id)) + 1 : 1
@@ -330,7 +353,8 @@ function saveEdit() {
       profit: editProfit.value,
       payType: editPayType.value,
       status: editStatus.value,
-      datetime: editDatetime.value
+      datetime: editDatetime.value,
+      updatedAt: now
     })
   } else {
     // Edit
@@ -349,7 +373,8 @@ function saveEdit() {
         profit: editProfit.value,
         payType: editPayType.value,
         status: editStatus.value,
-        datetime: editDatetime.value
+        datetime: editDatetime.value,
+        updatedAt: now
       }
     }
   }
@@ -358,6 +383,14 @@ function saveEdit() {
     window.dispatchEvent(new Event('profit-updated'));
   }
   showEdit.value = false
+  showSuccessModal.value = true
+  if (successModalTimer) {
+    clearTimeout(successModalTimer)
+  }
+  successModalTimer = setTimeout(() => {
+    showSuccessModal.value = false
+    successModalTimer = null
+  }, 1000)
 }
 function cancelEdit() {
   showEdit.value = false
