@@ -148,6 +148,12 @@ function closeSuccessModal() {
   }
 }
 import { nextTick } from 'vue'
+
+// Save products to localStorage
+function saveProducts(products) {
+  const PRODUCT_KEY = 'products'
+  localStorage.setItem(PRODUCT_KEY, JSON.stringify(products))
+}
 // Role check: prevent staff from accessing admin page
 if (process.client) {
   const role = localStorage.getItem('role');
@@ -160,7 +166,6 @@ import Header from '@/components/Header.vue'
 import { useRouter } from '#app'
 const router = useRouter()
 
-const PRODUCT_KEY = 'products'
 const CATEGORY_KEY = 'categories'
 function loadCategories() {
   const data = localStorage.getItem(CATEGORY_KEY)
@@ -189,6 +194,45 @@ if (typeof window !== 'undefined') {
       categories.value = loadCategories()
     }
   })
+}
+
+function loadProducts() {
+  const PRODUCT_KEY = 'products'
+  const data = localStorage.getItem(PRODUCT_KEY)
+  let localProducts = []
+  if (data) {
+    try {
+      localProducts = JSON.parse(data)
+    } catch {
+      localProducts = []
+    }
+  }
+  // Default products
+  const defaultProducts = [
+    { id: 1, name: 'ข้าวสาร', price: 199, cost: 130, qty: 100, category: 1, createdAt: '2026-02-01T09:00', updatedAt: '2026-02-01T09:00' },
+    { id: 2, name: 'น้ำปลา', price: 32, cost: 24, qty: 50, category: 1, createdAt: '2026-02-01T09:10', updatedAt: '2026-02-01T09:10' },
+    { id: 3, name: 'น้ำตาล', price: 22, cost: 14, qty: 70, category: 1, createdAt: '2026-02-01T09:20', updatedAt: '2026-02-01T09:20' },
+    { id: 4, name: 'เกลือ', price: 18, cost: 11, qty: 60, category: 1, createdAt: '2026-02-01T09:30', updatedAt: '2026-02-01T09:30' },
+    { id: 5, name: 'แป้ง', price: 25, cost: 15, qty: 80, category: 1, createdAt: '2026-02-01T09:40', updatedAt: '2026-02-01T09:40' },
+    { id: 6, name: 'โค้ก', price: 15, cost: 8, qty: 80, category: 2, createdAt: '2026-02-01T10:00', updatedAt: '2026-02-01T10:00' },
+    { id: 7, name: 'เป๊ปซี่', price: 15, cost: 8, qty: 70, category: 2, createdAt: '2026-02-01T10:10', updatedAt: '2026-02-01T10:10' },
+    { id: 8, name: 'น้ำเปล่า', price: 10, cost: 4, qty: 120, category: 2, createdAt: '2026-02-01T10:20', updatedAt: '2026-02-01T10:20' },
+    { id: 9, name: 'ชาเขียว', price: 20, cost: 12, qty: 60, category: 2, createdAt: '2026-02-01T10:30', updatedAt: '2026-02-01T10:30' },
+    { id: 10, name: 'นมกล่อง', price: 18, cost: 10, qty: 90, category: 2, createdAt: '2026-02-01T10:40', updatedAt: '2026-02-01T10:40' },
+    { id: 11, name: 'สบู่', price: 25, cost: 15, qty: 60, category: 3, createdAt: '2026-02-01T11:00', updatedAt: '2026-02-01T11:00' },
+    { id: 12, name: 'แชมพู', price: 49, cost: 25, qty: 40, category: 3, createdAt: '2026-02-01T11:10', updatedAt: '2026-02-01T11:10' },
+    { id: 13, name: 'ยาสีฟัน', price: 29, cost: 18, qty: 50, category: 3, createdAt: '2026-02-01T11:20', updatedAt: '2026-02-01T11:20' },
+    { id: 14, name: 'กระดาษทิชชู่', price: 79, cost: 53, qty: 100, category: 3, createdAt: '2026-02-01T11:30', updatedAt: '2026-02-01T11:30' },
+    { id: 15, name: 'น้ำยาล้างจาน', price: 22, cost: 16, qty: 70, category: 3, createdAt: '2026-02-01T11:40', updatedAt: '2026-02-01T11:40' }
+  ]
+  // Merge by id, keep local first, then add defaults not present
+  const merged = [...localProducts]
+  for (const def of defaultProducts) {
+    if (!merged.some(p => p.id === def.id)) {
+      merged.push(def)
+    }
+  }
+  return merged
 }
 const selectedCategory = ref(0)
 const products = ref(loadProducts())
@@ -298,7 +342,7 @@ function addProduct() {
   editCost.value = 0
   editQty.value = 0
   editCategory.value = categories.value[0]?.id || 1
-  editImg.value = ''
+  editImg.value = '/default.jpg'
   nextTick(() => {
     if (imgInput.value) imgInput.value.value = ''
   })
@@ -360,7 +404,7 @@ function saveEdit() {
       cost: editCost.value,
       qty: editQty.value,
       category: editCategory.value,
-      img: editImg.value,
+      img: editImg.value || '/default.jpg',
       createdAt: now,
       updatedAt: now
     })
