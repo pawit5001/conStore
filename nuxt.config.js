@@ -6,5 +6,12 @@ export default defineNuxtConfig({
   ssr: false,
   router: {
     middleware: ['auth']
+  },
+  app: {
+    head: {
+      link: [
+        { rel: 'icon', type: 'image/jpeg', href: '/conStore-logo.jpg' }
+      ]
+    }
   }
 });
