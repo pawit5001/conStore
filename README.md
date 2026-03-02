@@ -1,4 +1,4 @@
-# POS Project (sa-conStore)
+# POS SA-Project (sa-conStore)
 
 A Point of Sale (POS) system with beautiful UX/UI based on the provided PDF mockup.
 
