@@ -39,6 +39,8 @@
             <li v-for="emp in pagedEmployees" :key="emp.id" class="flex justify-between items-center border-b py-2">
               <div>
                 <div class="font-semibold">{{ emp.name }}</div>
+                <div class="text-sm text-gray-500">ชื่อผู้ใช้: {{ emp.username || '-' }} | เบอร์โทร: {{ emp.tel || '-' }}</div>
+                <div class="text-sm text-gray-500">อีเมล: {{ emp.email || '-' }} | วันเกิด: {{ emp.bdate || '-' }}</div>
                 <div class="text-sm text-gray-500">{{ emp.role }} | {{ emp.status === 'active' ? 'เปิดใช้งาน' : 'ปิดใช้งาน' }}</div>
                 <div class="text-xs text-gray-400">
                   เพิ่มเมื่อ: {{ emp.createdAt ? new Date(emp.createdAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) : '-' }}<br>
@@ -67,6 +69,22 @@
               <div class="mb-3">
                 <label class="block mb-1 font-bold">ชื่อพนักงาน</label>
                 <input v-model="editName" type="text" class="border rounded px-2 py-1 w-full" placeholder="สมชาย ใจดี" />
+              </div>
+              <div class="mb-3">
+                <label class="block mb-1 font-bold">ชื่อผู้ใช้</label>
+                <input v-model="editUsername" type="text" class="border rounded px-2 py-1 w-full" placeholder="username" />
+              </div>
+              <div class="mb-3">
+                <label class="block mb-1 font-bold">เบอร์โทรศัพท์</label>
+                <input v-model="editTel" type="text" class="border rounded px-2 py-1 w-full" placeholder="0812345678" />
+              </div>
+              <div class="mb-3">
+                <label class="block mb-1 font-bold">อีเมล</label>
+                <input v-model="editEmail" type="email" class="border rounded px-2 py-1 w-full" placeholder="example@email.com" />
+              </div>
+              <div class="mb-3">
+                <label class="block mb-1 font-bold">วันเกิด</label>
+                <input v-model="editBdate" type="date" class="border rounded px-2 py-1 w-full" />
               </div>
               <div class="mb-3">
                 <label class="block mb-1 font-bold">ตำแหน่ง</label>
@@ -137,8 +155,78 @@ import Sidebar from '@/components/Sidebar.vue'
 
 const EMPLOYEE_KEY = 'employees'
 const defaultEmployees = [
-  { id: 1, name: 'สมชาย ใจดี', role: 'พนักงาน', status: 'active', createdAt: '2026-02-01T09:00', updatedAt: '2026-02-01T09:00' },
-  { id: 2, name: 'สมหญิง ขยัน', role: 'พนักงาน', status: 'inactive', createdAt: '2026-02-01T09:10', updatedAt: '2026-02-01T09:10' }
+  {
+    id: 1,
+    name: 'สมชาย ใจดี',
+    username: 'somchai',
+    tel: '0812345678',
+    email: 'somchai@example.com',
+    bdate: '1990-01-01',
+    role: 'พนักงาน',
+    status: 'active',
+    createdAt: '2026-02-01T09:00',
+    updatedAt: '2026-02-01T09:00'
+  },
+  {
+    id: 2,
+    name: 'สมหญิง ขยัน',
+    username: 'somying',
+    tel: '0898765432',
+    email: 'somying@example.com',
+    bdate: '1992-02-02',
+    role: 'พนักงาน',
+    status: 'inactive',
+    createdAt: '2026-02-01T09:10',
+    updatedAt: '2026-02-01T09:10'
+  },
+  {
+    id: 3,
+    name: 'อนันต์ สุขใจ',
+    username: 'anan',
+    tel: '0861112222',
+    email: 'anan.sukjai@email.com',
+    bdate: '1985-05-15',
+    role: 'เจ้าของร้าน',
+    status: 'active',
+    createdAt: '2026-02-02T10:00',
+    updatedAt: '2026-02-02T10:00'
+  },
+  {
+    id: 4,
+    name: 'ปวีณา รุ่งเรือง',
+    username: 'paweena',
+    tel: '0823334444',
+    email: 'paweena.rung@example.com',
+    bdate: '1995-09-09',
+    role: 'พนักงาน',
+    status: 'active',
+    createdAt: '2026-02-03T11:00',
+    updatedAt: '2026-02-03T11:00'
+  },
+  {
+    id: 5,
+    name: 'ธีรศักดิ์ มั่นคง',
+    username: 'teerasak',
+    tel: '0855556666',
+    email: 'teerasak.mankong@email.com',
+    bdate: '1988-12-20',
+    role: 'พนักงาน',
+    status: 'inactive',
+    createdAt: '2026-02-04T12:00',
+    updatedAt: '2026-02-04T12:00'
+  },
+  {
+    id: 6,
+    name: 'วราภรณ์ สายใจ',
+    username: 'waraporn',
+    tel: '0877778888',
+    email: 'waraporn.saijai@email.com',
+    bdate: '1993-07-07',
+    role: 'เจ้าของร้าน',
+    status: 'active',
+    createdAt: '2026-02-05T13:00',
+    updatedAt: '2026-02-05T13:00'
+  }
 ]
 function loadEmployees() {
   const data = localStorage.getItem(EMPLOYEE_KEY)
@@ -210,6 +298,10 @@ watch([filteredEmployees, pageSize], () => {
 const showEdit = ref(false)
 const editId = ref(null)
 const editName = ref('')
+const editUsername = ref('')
+const editTel = ref('')
+const editEmail = ref('')
+const editBdate = ref('')
 const editRole = ref('พนักงาน')
 const editStatus = ref('active')
 
@@ -220,6 +312,10 @@ function addEmployee() {
   showEdit.value = true
   editId.value = null
   editName.value = ''
+  editUsername.value = ''
+  editTel.value = ''
+  editEmail.value = ''
+  editBdate.value = ''
   editRole.value = 'พนักงาน'
   editStatus.value = 'active'
 }
@@ -229,6 +325,10 @@ function editEmployee(id) {
     showEdit.value = true
     editId.value = id
     editName.value = emp.name
+    editUsername.value = emp.username || ''
+    editTel.value = emp.tel || ''
+    editEmail.value = emp.email || ''
+    editBdate.value = emp.bdate || ''
     editRole.value = emp.role
     editStatus.value = emp.status
   }
@@ -265,6 +365,10 @@ function saveEdit() {
     employees.value.push({
       id: newId,
       name: editName.value,
+      username: editUsername.value,
+      tel: editTel.value,
+      email: editEmail.value,
+      bdate: editBdate.value,
       role: editRole.value,
       status: editStatus.value,
       createdAt: now,
@@ -279,6 +383,10 @@ function saveEdit() {
       employees.value[idx] = {
         ...emp,
         name: editName.value,
+        username: editUsername.value,
+        tel: editTel.value,
+        email: editEmail.value,
+        bdate: editBdate.value,
         role: editRole.value,
         status: editStatus.value,
         updatedAt: now
