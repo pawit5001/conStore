@@ -48,7 +48,7 @@
             </span>
             <button class="px-2 xs:px-3 py-1 rounded bg-gray-200 text-gray-700 font-bold" :disabled="page === totalPages" @click="goNext">ถัดไป</button>
           </div>
-          <!-- ไม่มี modal สำหรับ staff -->
+          <!-- ไม่มี modal สำหรับ staff และไม่มีการแสดงกำไร -->
         </div>
         <button class="fixed bottom-3 right-3 xs:bottom-4 xs:right-4 sm:bottom-6 sm:right-6 bg-pink-500 text-white rounded-full shadow-lg p-2 xs:p-3 sm:p-4 z-40 flex items-center gap-1 xs:gap-2 hover:bg-pink-600 transition-all border-2 border-white/80" @click="goHome">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 xs:w-6 xs:h-6 sm:w-7 sm:h-7">
@@ -79,11 +79,11 @@ const defaultProfits = [
   { id: 1, name: 'ORD-20260225-0001', items: [
     { name: 'ข้าวสาร', qty: 2, price: 35, cost: 15 },
     { name: 'โค้ก', qty: 1, price: 15, cost: 8 }
-  ], total: 85, profit: 47, payType: 'เงินสด', status: 'active', datetime: '2026-02-25T09:00' },
+  ], total: 85, payType: 'เงินสด', status: 'active', datetime: '2026-02-25T09:00' },
   { id: 2, name: 'ORD-20260225-0002', items: [
     { name: 'โค้ก', qty: 3, price: 15, cost: 8 },
     { name: 'น้ำเปล่า', qty: 2, price: 10, cost: 4 }
-  ], total: 65, profit: 29, payType: 'พร้อมเพย์', status: 'inactive', datetime: '2026-02-25T10:30' }
+  ], total: 65, payType: 'พร้อมเพย์', status: 'inactive', datetime: '2026-02-25T10:30' }
 ]
 function loadProfits() {
   const data = localStorage.getItem(PROFIT_KEY)
@@ -152,7 +152,6 @@ const editName = ref('')
 // Remove unused single item fields (editQty, editPrice, editCost)
 const editItems = ref([])
 const editTotal = ref(0)
-const editProfit = ref(0)
 const editPayType = ref('เงินสด')
 const editStatus = ref('active')
 const editDatetime = ref(new Date().toISOString().slice(0,16))
@@ -166,7 +165,6 @@ function addProfit() {
   editName.value = generateOrderCode()
   editItems.value = []
   editTotal.value = 0
-  editProfit.value = 0
   editPayType.value = 'เงินสด'
   editStatus.value = 'active'
   editDatetime.value = new Date().toISOString().slice(0,16)
@@ -185,7 +183,6 @@ function editProfitFn(id) {
       cost: prod.cost || 0
     }))
     editTotal.value = item.total
-    editProfit.value = item.profit
     editPayType.value = item.payType
     editStatus.value = item.status
     editDatetime.value = item.datetime || new Date().toISOString().slice(0,16)
@@ -228,7 +225,6 @@ function saveEdit() {
   }
   // คำนวณ total/profit ใหม่
   editTotal.value = editItems.value.reduce((sum, i) => sum + (i.price * i.qty), 0)
-  editProfit.value = editItems.value.reduce((sum, i) => sum + ((i.price - (i.cost || 0)) * i.qty), 0)
   if (editId.value === null) {
     // Add
     const newId = profits.value.length ? Math.max(...profits.value.map(i => i.id)) + 1 : 1
@@ -243,7 +239,6 @@ function saveEdit() {
         cost: prod.cost || 0
       })),
       total: editTotal.value,
-      profit: editProfit.value,
       payType: editPayType.value,
       status: editStatus.value,
       datetime: editDatetime.value
@@ -262,7 +257,6 @@ function saveEdit() {
           cost: prod.cost || 0
         })),
         total: editTotal.value,
-        profit: editProfit.value,
         payType: editPayType.value,
         status: editStatus.value,
         datetime: editDatetime.value
@@ -292,7 +286,6 @@ function importOrderToProfits() {
         const now = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' }).replace(' ', 'T').slice(0,16)
         const orderCode = generateOrderCode()
         const total = order.reduce((sum, item) => sum + (item.price * item.qty), 0)
-        const profit = order.reduce((sum, item) => sum + ((item.price - (item.cost || 0)) * item.qty), 0)
         const payType = order[0]?.payType || 'เงินสด'
         // Prevent duplicate by order code and datetime
         if (!profits.value.some(p => p.name === orderCode && p.datetime === now)) {
@@ -301,7 +294,6 @@ function importOrderToProfits() {
             name: orderCode,
             items: order.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
             total,
-            profit,
             payType,
             status: 'active',
             datetime: now
