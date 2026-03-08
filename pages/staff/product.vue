@@ -32,7 +32,7 @@
             <li v-for="prod in pagedProducts" :key="prod.id" class="flex justify-between items-center border-b py-2">
               <div>
                 <div class="font-semibold">{{ prod.name }}</div>
-                <div class="text-sm text-gray-500">ราคา: ฿{{ prod.price }} | ต้นทุน: ฿{{ prod.cost }} | จำนวน: {{ prod.qty }}</div>
+                  <div class="text-sm text-gray-500">ราคา: ฿{{ prod.price }} | จำนวน: {{ prod.qty }}</div>
                 <div class="text-xs text-gray-400">
                   เพิ่มเมื่อ: {{ prod.createdAt ? new Date(prod.createdAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) : '-' }}<br>
                   แก้ไขล่าสุด: {{ prod.updatedAt ? new Date(prod.updatedAt).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }) : '-' }}
